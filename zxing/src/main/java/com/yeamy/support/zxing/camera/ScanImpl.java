@@ -1,0 +1,111 @@
+/*
+ * Copyright (C) 2016 Yeamy
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.yeamy.support.zxing.camera;
+
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.hardware.Camera;
+import android.hardware.Camera.PreviewCallback;
+import android.hardware.Camera.Size;
+
+import com.yeamy.support.zxing.ScanResult;
+import com.yeamy.support.zxing.ScanResultListener;
+import com.yeamy.support.zxing.Viewfinder;
+import com.yeamy.support.zxing.decode.DecodeBean;
+import com.yeamy.support.zxing.decode.DecodeManager;
+import com.yeamy.support.zxing.decode.DecodeManager.DecodeCallback;
+
+@SuppressWarnings("deprecation")
+public class ScanImpl implements PreviewCallback, DecodeCallback {
+    private final DecodeBean bean;
+    private final DecodeManager decode;
+    private ScanResultListener listener;
+    private CameraImpl camera;
+    private boolean ready = true;
+
+    public ScanImpl(DecodeManager manager) {
+        decode = manager;
+        bean = new DecodeBean();
+    }
+
+    public boolean requestScan(CameraImpl camera, ScanResultListener listener) {
+        this.camera = camera;
+        this.listener = listener;
+        if (camera.isPreviewing() && ready) {
+            camera.startAutoFocus();
+            startScan();
+            ready = false;
+            return true;
+        }
+        return false;
+    }
+
+    private void startScan() {
+        if (camera.isOpen()) {
+            camera.device.setOneShotPreviewCallback(this);
+        }
+    }
+
+    @Override
+    public final void onPreviewFrame(byte[] data, Camera camera) {
+        // Size s = camera.getParameters().getPreviewSize();
+        // System.out.println("!!!==============> " + s.width + " " + s.height);
+        Size size = this.camera.previewSize;
+        int dataWidth = size.width;
+        int dataHeight = size.height;
+        bean.setSource(data, dataWidth, dataHeight);
+        // frame
+        int left, top, width, height;
+        Viewfinder viewfinder = this.camera.viewfinder;
+        Point view = viewfinder.getPreviewSize();
+        Rect frame = viewfinder.getFrameSize();
+
+        boolean portrait = viewfinder.getOrientation() % 180 != 0;
+        if (portrait) {// portrait
+            left = frame.top * dataWidth / view.y;
+            top = (view.x - frame.right) * dataWidth / view.y;
+            width = frame.height() * dataWidth / view.y;
+            height = frame.width() * dataWidth / view.y;
+            bean.setFrameRectPortrait(left, top, width, height);
+        } else {// landspace
+            left = frame.left * dataWidth / view.x;
+            top = frame.top * dataWidth / view.x;
+            width = frame.width() * dataWidth / view.x;
+            height = frame.height() * dataWidth / view.x;
+            bean.setFrameRectLandspace(left, top, width, height);
+        }
+        // done
+        decode.requestDecode(bean, this, viewfinder);// jump to decode
+    }
+
+    @Override
+    public final void onDecodeSuccess(ScanResult result) {
+        if (listener != null) {
+            listener.onScanSuccess(result);
+            listener = null;
+        }
+        camera.stopAutoFocus();
+        bean.clearBuff();
+        camera = null;
+        ready = true;
+    }
+
+    @Override
+    public void onDecodeFail() {
+        startScan();
+    }
+
+}
