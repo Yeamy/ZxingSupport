@@ -2,34 +2,35 @@ package com.yeamy.support.zxing.plugin;
 
 import android.app.Activity;
 
-import com.yeamy.support.zxing.LooperThread;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Code come from zxing-android with little modification, can be replay by the original file;
  */
-public final class InactivityTimer implements Runnable {
+public final class InactivityTimer {
 
-	private static final long INACTIVITY_DELAY_MS = 5 * 60 * 1000L;
+    private static final long INACTIVITY_DELAY_MS = 5 * 60 * 1000L;
 
-	private final Activity activity;
-	private final LooperThread thread;
+    private final Activity activity;
+    private final Timer timer = new Timer();
+    private final TimerTask task = new TimerTask() {
+        @Override
+        public void run() {
+            activity.finish();
+        }
+    };
 
-	public InactivityTimer(Activity activity, LooperThread thread) {
-		this.activity = activity;
-		this.thread = thread;
-	}
+    public InactivityTimer(Activity activity) {
+        this.activity = activity;
+    }
 
-	public void onResume() {
-		thread.postDelayed(this, INACTIVITY_DELAY_MS);
-	}
+    public void onResume() {
+        timer.schedule(task, INACTIVITY_DELAY_MS);
+    }
 
-	public void onPause() {
-		thread.removeCallbacks(this);
-	}
-
-	@Override
-	public void run() {
-		activity.finish();
-	}
+    public void onPause() {
+        task.cancel();
+    }
 
 }

@@ -22,7 +22,7 @@ public final class CameraImpl {
     Viewfinder viewfinder;
     Size previewSize;
 
-    private AutoFocusImpl autoFocusImpl;
+    private AutoFocusManager autoFocus;
     private boolean af;
     private TextureView previewView;
 
@@ -48,26 +48,26 @@ public final class CameraImpl {
         return this.device != null;
     }
 
-    public void setAutoFocusImpl(AutoFocusImpl afm) {
-        this.autoFocusImpl = afm;
+    public void setAutoFocus(AutoFocusManager afm) {
+        this.autoFocus = afm;
         afm.init(this.device);
     }
 
     private boolean isAutoFocusRunning() {
-        return isPreviewing() && af && autoFocusImpl != null;
+        return isPreviewing() && af && autoFocus != null;
     }
 
     void startAutoFocus() {
         af = true;
-        if (isPreviewing() && autoFocusImpl != null) {
-            autoFocusImpl.start();
+        if (isPreviewing() && autoFocus != null) {
+            autoFocus.start();
         }
     }
 
     void stopAutoFocus() {
         af = false;
-        if (autoFocusImpl != null) {
-            autoFocusImpl.stop();
+        if (autoFocus != null) {
+            autoFocus.stop();
         }
     }
 
@@ -104,9 +104,9 @@ public final class CameraImpl {
 
     public void requestPreview(TextureView pv, Viewfinder vf) {
         this.viewfinder = vf;
-        setPreviewSize(vf);
-        pv.setSurfaceTextureListener(new Listener(vf));
         this.previewView = pv;
+        setPreviewSize(vf);
+        pv.setSurfaceTextureListener(new Listener());
         device.setDisplayOrientation(vf.getOrientation());
     }
 
@@ -171,13 +171,9 @@ public final class CameraImpl {
     }
 
     private class Listener implements TextureView.SurfaceTextureListener {
-        private Viewfinder vf;
-
-        Listener(Viewfinder vf) {
-            this.vf = vf;
-        }
 
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+            Viewfinder vf = viewfinder;
             startPreview(surface, vf);
             if (vf.getOrientation() % 180 == 0) {
                 vf.onStartPreview(previewView, previewSize.width, previewSize.height);

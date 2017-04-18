@@ -12,9 +12,9 @@ import java.util.Collection;
  * Code come from zxing-android with little modification, can be replay by the original file;
  */
 @SuppressWarnings("deprecation")
-public final class AutoFocusImpl implements Camera.AutoFocusCallback, Runnable {
+public final class AutoFocusManager implements Camera.AutoFocusCallback, Runnable {
 
-    private static final String TAG = AutoFocusImpl.class.getSimpleName();
+    private static final String TAG = AutoFocusManager.class.getSimpleName();
 
     private static final long AUTO_FOCUS_INTERVAL_MS = 2000L;
     private static final Collection<String> FOCUS_MODES_CALLING_AF;
@@ -31,7 +31,7 @@ public final class AutoFocusImpl implements Camera.AutoFocusCallback, Runnable {
     private Camera camera;
     private LooperThread thread;
 
-    public AutoFocusImpl(LooperThread thread) {
+    public AutoFocusManager(LooperThread thread) {
         this.thread = thread;
     }
 

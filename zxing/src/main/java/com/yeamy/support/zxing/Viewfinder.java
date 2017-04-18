@@ -7,8 +7,8 @@ import android.view.TextureView;
 import com.google.zxing.ResultPointCallback;
 
 public interface Viewfinder extends ResultPointCallback {
-	public static final int MIN_FRAME_WIDTH = 240;
-	public static final int MIN_FRAME_HEIGHT = 240;
+	public static final int MIN_FRAME_WIDTH = 300;
+	public static final int MIN_FRAME_HEIGHT = 300;
 	public static final int MAX_FRAME_WIDTH = 1200; // = 5/8 * 1920
 	public static final int MAX_FRAME_HEIGHT = 675; // = 5/8 * 1080
 	public static final int MIN_PREVIEW_PIXELS = 480 * 320; // normal screen

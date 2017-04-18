@@ -1,46 +1,59 @@
 package com.yeamy.support.zxing;
 
-import android.app.Activity;
-import android.view.TextureView;
 import android.widget.CompoundButton;
 
-import com.yeamy.support.zxing.camera.AutoFocusImpl;
+import com.yeamy.support.zxing.camera.AutoFocusManager;
 import com.yeamy.support.zxing.camera.CameraImpl;
-import com.yeamy.support.zxing.camera.ScanImpl;
+import com.yeamy.support.zxing.camera.ScanManager;
 import com.yeamy.support.zxing.decode.DecodeManager;
-import com.yeamy.support.zxing.plugin.InactivityTimer;
 import com.yeamy.support.zxing.plugin.ViewfinderView;
 
-public class ZxingSupport implements CompoundButton.OnCheckedChangeListener {
+public class ZxingSupport {
     //request
     private LooperThread thread;
     private CameraImpl camera;
-    private ScanImpl scan;
-    private Viewfinder vf;
-    private TextureView view;
-    private ScanResultListener l;
-    private InactivityTimer timer;
+    private ScanManager scan;
+    private Listener l;
 
-    private ViewfinderView viewfinderView;
     private CompoundButton torch;
 
-    public ZxingSupport(Activity activity, ScanResultListener l, ViewfinderView view) {
+    public ZxingSupport(Listener l) {
         //init thread
         LooperThread thread = new LooperThread();
         thread.start();
         //init camera
         CameraImpl camera = new CameraImpl();
         //init scan & decode
-        scan = new ScanImpl(new DecodeManager(thread));
+        scan = new ScanManager(new DecodeManager(thread));
         //init view & vf
         this.thread = thread;
         this.camera = camera;
-        this.vf = view;
-        this.viewfinderView = view;
-        this.view = view.getTextureView();
         this.l = l;
-        //
-        timer = new InactivityTimer(activity, thread);
+    }
+
+    public void setViewfinderView(ViewfinderView viewfinderView) {
+        viewfinderView.setPreviewListener(callback);
+    }
+
+    private Callback callback = new Callback();
+
+    private class Callback implements ViewfinderView.PreviewListener,
+            CompoundButton.OnCheckedChangeListener {
+
+        @Override
+        public void onViewCreated() {
+            l.onScanInitReady();
+        }
+
+        @Override
+        public void onStartPreview() {
+            scan.requestScan(camera, l);
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton torch, boolean isChecked) {
+            camera.setTorch(isChecked);
+        }
     }
 
     public void setTorch(CompoundButton torch) {
@@ -52,7 +65,7 @@ public class ZxingSupport implements CompoundButton.OnCheckedChangeListener {
         if (camera.isOpen() && torch != null) {
             //init torch
             if (camera.supportTorch()) {
-                torch.setOnCheckedChangeListener(this);
+                torch.setOnCheckedChangeListener(callback);
             } else {
                 torch.setEnabled(false);
             }
@@ -60,40 +73,25 @@ public class ZxingSupport implements CompoundButton.OnCheckedChangeListener {
     }
 
     public void onResume() {
-        timer.onResume();
-        boolean isOpen = camera.open();
-        initTorch();
-        if (isOpen) {
-            camera.setAutoFocusImpl(new AutoFocusImpl(thread));
-            viewfinderView.setPreviewListener(new ViewfinderView.PreviewListener() {
-                @Override
-                public void onViewCreated() {
-                    camera.requestPreview(view, vf);
-                }
-
-                @Override
-                public void onStartPreview() {
-                    scan.requestScan(camera, l);
-                }
-            });
+        if (camera.open()) {
+            camera.setAutoFocus(new AutoFocusManager(thread));
         }
+        initTorch();
     }
 
     public void onPause() {
         camera.close();
-        timer.onPause();
     }
 
     public void onDestroy() {
         thread.close();
     }
 
-    @Override
-    public void onCheckedChanged(CompoundButton torch, boolean isChecked) {
-        camera.setTorch(isChecked);
-    }
-
     public void requestScan() {
         scan.requestScan(camera, l);
+    }
+
+    public interface Listener extends ScanResultListener {
+        void onScanInitReady();
     }
 }
