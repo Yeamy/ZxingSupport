@@ -28,13 +28,13 @@ public class DemoActivity extends Activity implements ZxingSupport.Listener {
         zxing.setTorch((ToggleButton) findViewById(R.id.torch));
 
         beep = new BeepManager(R.raw.beep);
-        timer = new InactivityTimer(this);
+        timer = new InactivityTimer();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        timer.onResume();
+        timer.onResume(this, InactivityTimer.INACTIVITY_DELAY_MS);
         beep.onResume(this);
         zxing.onResume();
     }

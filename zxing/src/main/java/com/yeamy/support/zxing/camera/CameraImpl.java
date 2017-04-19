@@ -106,7 +106,11 @@ public final class CameraImpl {
         this.viewfinder = vf;
         this.previewView = pv;
         setPreviewSize(vf);
-        pv.setSurfaceTextureListener(new Listener());
+        Listener l = new Listener();
+        if (pv.isAvailable()) {
+            l.onSurfaceTextureAvailable(pv.getSurfaceTexture(), 0, 0);
+        }
+        pv.setSurfaceTextureListener(l);
         device.setDisplayOrientation(vf.getOrientation());
     }
 
@@ -173,6 +177,7 @@ public final class CameraImpl {
     private class Listener implements TextureView.SurfaceTextureListener {
 
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+            System.out.println("onSurfaceTextureAvailable---------->");
             Viewfinder vf = viewfinder;
             startPreview(surface, vf);
             if (vf.getOrientation() % 180 == 0) {

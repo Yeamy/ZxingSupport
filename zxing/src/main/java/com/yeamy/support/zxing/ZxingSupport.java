@@ -15,6 +15,7 @@ public class ZxingSupport {
     private ScanManager scan;
     private Listener l;
 
+    private ViewfinderView viewfinderView;
     private CompoundButton torch;
 
     public ZxingSupport(Listener l) {
@@ -32,7 +33,17 @@ public class ZxingSupport {
     }
 
     public void setViewfinderView(ViewfinderView viewfinderView) {
-        viewfinderView.setPreviewListener(callback);
+        this.viewfinderView = viewfinderView;
+        startPreview();
+    }
+
+    private void startPreview() {
+        CameraImpl camera = this.camera;
+        ViewfinderView view = this.viewfinderView;
+        if (camera != null && camera.isOpen() && view != null) {
+            viewfinderView.setPreviewListener(callback);
+            camera.requestPreview(view.getTextureView(), view);
+        }
     }
 
     private Callback callback = new Callback();
@@ -42,12 +53,12 @@ public class ZxingSupport {
 
         @Override
         public void onViewCreated() {
-            l.onScanInitReady();
+            startPreview();
         }
 
         @Override
         public void onStartPreview() {
-            scan.requestScan(camera, l);
+            l.onScanInitReady();
         }
 
         @Override
@@ -66,6 +77,7 @@ public class ZxingSupport {
             //init torch
             if (camera.supportTorch()) {
                 torch.setOnCheckedChangeListener(callback);
+                if (torch.isChecked()) camera.setTorch(true);
             } else {
                 torch.setEnabled(false);
             }
@@ -75,6 +87,7 @@ public class ZxingSupport {
     public void onResume() {
         if (camera.open()) {
             camera.setAutoFocus(new AutoFocusManager(thread));
+            startPreview();
         }
         initTorch();
     }
