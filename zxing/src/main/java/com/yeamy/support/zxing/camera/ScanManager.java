@@ -6,30 +6,35 @@ import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 
+import com.yeamy.support.zxing.LooperThread;
 import com.yeamy.support.zxing.ScanResult;
 import com.yeamy.support.zxing.ScanResultListener;
 import com.yeamy.support.zxing.Viewfinder;
 import com.yeamy.support.zxing.decode.DecodeBean;
-import com.yeamy.support.zxing.decode.DecodeManager;
-import com.yeamy.support.zxing.decode.DecodeManager.DecodeCallback;
+import com.yeamy.support.zxing.decode.DecodeRequest;
+import com.yeamy.support.zxing.decode.DecodeRequest.DecodeCallback;
 
 @SuppressWarnings("deprecation")
 public class ScanManager implements PreviewCallback, DecodeCallback {
     private final DecodeBean bean;
-    private final DecodeManager decode;
+    private final DecodeRequest decode;
     private ScanResultListener listener;
     private CameraImpl camera;
+    private LooperThread thread;
     private boolean ready = true;
 
-    public ScanManager(DecodeManager manager) {
-        decode = manager;
-        bean = new DecodeBean();
-    }
-
-    public boolean requestScan(CameraImpl camera, ScanResultListener listener) {
+    public ScanManager(LooperThread thread, CameraImpl camera, ScanResultListener listener,
+                       DecodeRequest decode) {
+        this.thread = thread;
         this.camera = camera;
         this.listener = listener;
-        if (camera.isPreviewing() && ready) {
+        this.decode = decode;
+        this.bean = new DecodeBean();
+    }
+
+    public boolean requestScan() {
+        PreviewManager pm = camera.getPreviewManager();
+        if (pm.isPreviewing() && ready) {
             camera.startAutoFocus();
             startScan();
             ready = false;
@@ -40,7 +45,7 @@ public class ScanManager implements PreviewCallback, DecodeCallback {
 
     private void startScan() {
         if (camera.isOpen()) {
-            camera.device.setOneShotPreviewCallback(this);
+            camera.getDevice().setOneShotPreviewCallback(this);
         }
     }
 
@@ -48,13 +53,14 @@ public class ScanManager implements PreviewCallback, DecodeCallback {
     public final void onPreviewFrame(byte[] data, Camera camera) {
         // Size s = camera.getParameters().getPreviewSize();
         // System.out.println("!!!==============> " + s.width + " " + s.height);
-        Size size = this.camera.previewSize;
+        PreviewManager pm = this.camera.getPreviewManager();
+        Size size = pm.getPreviewSize();
         int dataWidth = size.width;
         int dataHeight = size.height;
         bean.setSource(data, dataWidth, dataHeight);
         // frame
         int left, top, width, height;
-        Viewfinder viewfinder = this.camera.viewfinder;
+        Viewfinder viewfinder = pm.getViewfinder();
         Point view = viewfinder.getPreviewSize();
         Rect frame = viewfinder.getFrameSize();
 
@@ -73,18 +79,15 @@ public class ScanManager implements PreviewCallback, DecodeCallback {
             bean.setFrameRectLandspace(left, top, width, height);
         }
         // done
-        decode.requestDecode(bean, this, viewfinder);// jump to decode
+        decode.setRequest(bean, this, viewfinder);// jump to decode
+        thread.post(decode);
     }
 
     @Override
     public final void onDecodeSuccess(ScanResult result) {
-        if (listener != null) {
-            listener.onScanSuccess(result);
-            listener = null;
-        }
+        listener.onScanSuccess(result);
         camera.stopAutoFocus();
         bean.clearBuff();
-        camera = null;
         ready = true;
     }
 

@@ -8,11 +8,9 @@ import com.google.zxing.Result;
 import com.google.zxing.ResultPoint;
 import com.google.zxing.ResultPointCallback;
 import com.google.zxing.common.HybridBinarizer;
-import com.yeamy.support.zxing.LooperThread;
 import com.yeamy.support.zxing.ScanResult;
 
-public class DecodeManager implements Runnable, ResultPointCallback {
-    private final LooperThread thread;
+public class DecodeRequest implements Runnable, ResultPointCallback {
     private final MultiFormatReader multiFormatReader;
     private ResultPointCallback pointCallback;
     private DecodeCallback callback;
@@ -21,22 +19,20 @@ public class DecodeManager implements Runnable, ResultPointCallback {
     /**
      * width Default Config
      */
-    public DecodeManager(LooperThread thread) {
-        this(thread, DecodeConfig.defaultConfig());
+    public DecodeRequest() {
+        this(DecodeConfig.defaultConfig());
     }
 
-    public DecodeManager(LooperThread thread, DecodeConfig config) {
-        this.thread = thread;
+    public DecodeRequest(DecodeConfig config) {
         this.multiFormatReader = new MultiFormatReader();
         config.setCallback(this);
         multiFormatReader.setHints(config.build());
     }
 
-    public void requestDecode(DecodeBean bean, DecodeCallback callback, ResultPointCallback pointCallback) {
+    public void setRequest(DecodeBean bean, DecodeCallback callback, ResultPointCallback pointCallback) {
         this.bean = bean;
         this.callback = callback;
         this.pointCallback = pointCallback;
-        thread.post(this);
     }
 
     @Override

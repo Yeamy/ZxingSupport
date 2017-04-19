@@ -8,6 +8,7 @@ import android.widget.ToggleButton;
 
 import com.yeamy.support.zxing.ScanResult;
 import com.yeamy.support.zxing.ZxingSupport;
+import com.yeamy.support.zxing.decode.DecodeRequest;
 import com.yeamy.support.zxing.plugin.BeepManager;
 import com.yeamy.support.zxing.plugin.InactivityTimer;
 import com.yeamy.support.zxing.plugin.ViewfinderView;
@@ -23,7 +24,7 @@ public class DemoActivity extends Activity implements ZxingSupport.Listener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.demo);
 
-        zxing = new ZxingSupport(this);
+        zxing = new ZxingSupport(this, new DecodeRequest());
         zxing.setViewfinderView((ViewfinderView) findViewById(R.id.preview_view));
         zxing.setTorch((ToggleButton) findViewById(R.id.torch));
 
@@ -55,7 +56,7 @@ public class DemoActivity extends Activity implements ZxingSupport.Listener {
     }
 
     @Override
-    public void onScanInitReady() {
+    public void onScanReady() {
         zxing.requestScan();
     }
 
