@@ -17,16 +17,17 @@ public class DemoActivity extends Activity implements ZxingSupport.Listener {
     //request
     private ZxingSupport zxing;
     //option
-    private BeepManager beep;
-    private InactivityTimer timer;
+    private BeepManager beep;// beep when scan result
+    private InactivityTimer timer;//auto close activity after 15-minutes
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.demo);
 
-        zxing = new ZxingSupport(this, new DecodeRequest());
-        zxing.setViewfinderView((ViewfinderView) findViewById(R.id.preview_view));
-        zxing.setTorch((ToggleButton) findViewById(R.id.torch));
+        DecodeRequest request = new DecodeRequest();//需要判断的类型，此处选择默认类型
+        zxing = new ZxingSupport(this, request);
+        zxing.setViewfinderView((ViewfinderView) findViewById(R.id.preview_view));//设置预览
+        zxing.setTorch((ToggleButton) findViewById(R.id.torch));//设置闪光灯
 
         beep = new BeepManager(R.raw.beep);
         timer = new InactivityTimer();
@@ -38,6 +39,10 @@ public class DemoActivity extends Activity implements ZxingSupport.Listener {
         timer.onResume(this, InactivityTimer.INACTIVITY_DELAY_MS);
         beep.onResume(this);
         zxing.onResume();
+
+        if (!zxing.isOpen()) {//处理启动失败
+            new OnFailDialog(this).show();
+        }
     }
 
     @Override
@@ -63,14 +68,14 @@ public class DemoActivity extends Activity implements ZxingSupport.Listener {
     @Override
     public void onScanSuccess(ScanResult result) {
         beep.play();
-        Dialog dialog = new ResultDialog(this, result.getRawText()).show();
+        Dialog dialog = new ScanResultDialog(this, result.getRawText()).show();
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
 
             @Override
             public void onDismiss(DialogInterface dialog) {
                 zxing.requestScan();
             }
-        });
+        });//再次扫描
         System.out.println(result.getRawText());
         // TODO Auto-generated method stub
     }

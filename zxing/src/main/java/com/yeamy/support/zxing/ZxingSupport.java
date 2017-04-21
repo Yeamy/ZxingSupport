@@ -92,6 +92,10 @@ public class ZxingSupport {
         initTorch();
     }
 
+    public boolean isOpen() {
+        return camera.isOpen();
+    }
+
     public void onPause() {
         camera.close();
     }
@@ -105,6 +109,9 @@ public class ZxingSupport {
     }
 
     public interface Listener extends ScanResultListener {
+        /**
+         * 初始化完成
+         */
         void onScanReady();
     }
 }
