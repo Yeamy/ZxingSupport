@@ -57,7 +57,7 @@ public class ZxingSupport {
         }
 
         @Override
-        public void onStartPreview() {
+        public void onPreviewStart() {
             l.onScanReady();
         }
 

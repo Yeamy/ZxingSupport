@@ -6,7 +6,6 @@
         <attr name="frameTop" format="reference|dimension" />
         <attr name="frameRight" format="reference|dimension" />
         <attr name="frameBottom" format="reference|dimension" />
-        <attr name="frameColor" format="reference|color" />
     </declare-styleable>
 
 </resources>

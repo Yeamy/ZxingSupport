@@ -9,7 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="top"
-        app:frameColor="#90000000"
         app:frameLeft="40dp"
         app:frameRight="40dp"
         app:frameTop="40dp" />

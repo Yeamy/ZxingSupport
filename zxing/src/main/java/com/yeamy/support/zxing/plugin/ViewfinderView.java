@@ -21,11 +21,11 @@ import com.yeamy.support.zxing.Viewfinder;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 /**
- * The best way to instance Viewfinder is to create a view implements it
+ * The best way to instance Viewfinder is to create a view implements it<br>
+ * invoke {@link #setFrameCover(Drawable)} to change cover frame
  */
 public class ViewfinderView extends FrameLayout implements Viewfinder {
     private int frameTop, frameLeft, frameRight, frameBottom;
-    private int frameColor;
     private Point viewRect;
     private Rect frameRect;
     private boolean created;
@@ -44,12 +44,8 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
         frameLeft = a.getDimensionPixelSize(R.styleable.ViewfinderView_frameLeft, 0);
         frameRight = a.getDimensionPixelSize(R.styleable.ViewfinderView_frameRight, 0);
         frameBottom = a.getDimensionPixelSize(R.styleable.ViewfinderView_frameBottom, -1);
-        frameColor = a.getColor(R.styleable.ViewfinderView_frameColor, 0x90000000);
         a.recycle();
-        init(context);
-    }
 
-    private void init(Context context) {
         LayoutParams params = new LayoutParams(MATCH_PARENT, MATCH_PARENT);
         params.gravity = Gravity.CENTER_HORIZONTAL;
         TextureView view = new TextureView(context);
@@ -58,9 +54,21 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
         this.textureParams = params;
         this.viewRect = new Point();
         this.frameRect = new Rect();
-        setForeground(new FrameDrawable());
+
+        setFrameCover(new SimpleFrameDrawable());
     }
 
+    public void setFrameCover(Drawable drawable) {
+        if (drawable != null && drawable instanceof FrameDrawable) {
+            FrameDrawable draw = (SimpleFrameDrawable) drawable;
+            draw.setFrameRect(frameRect);
+        }
+        setForeground(drawable);
+    }
+
+    /**
+     * @return the real display view
+     */
     public TextureView getTextureView() {
         return textureView;
     }
@@ -164,39 +172,65 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
                 getRight() - x, //
                 getTop() + surfaceHeight);
         if (listener != null) {
-            listener.onStartPreview();
+            listener.onPreviewStart();
         }
     }
 
     /**
      * the frame rect of viewfinder width four corner
      */
-    private class FrameDrawable extends Drawable {
-        private Paint paint;
+    public abstract class FrameDrawable extends Drawable {
+        private Paint paint = new Paint();
+        private Rect frameRect;
 
-        public FrameDrawable() {
-            paint = new Paint();
+        private void setFrameRect(Rect frameRect) {
+            this.frameRect = frameRect;
+        }
+
+        public Rect getFrameRect() {
+            return frameRect;
+        }
+
+        public Paint getPaint() {
+            return paint;
+        }
+    }
+
+    public class SimpleFrameDrawable extends FrameDrawable {
+        private int laseColor = 0x90000000;
+        private int frameColor = 0x60ffffff;
+        private int cornerColor = 0xc0ffffff;
+
+        public void setLaseColor(int laseColor) {
+            this.laseColor = laseColor;
+        }
+
+        public void setFrameColor(int frameColor) {
+            this.frameColor = frameColor;
+        }
+
+        public void setCornerColor(int cornerColor) {
+            this.cornerColor = cornerColor;
         }
 
         @Override
         public void draw(Canvas canvas) {
             int width = canvas.getWidth();
             int height = canvas.getHeight();
-            Rect frameRect = ViewfinderView.this.frameRect;
-            int frameColor = ViewfinderView.this.frameColor;
+            Rect frameRect = getFrameRect();
             int top = frameRect.top;
             int left = frameRect.left;
             int right = frameRect.right;
             int bottom = frameRect.bottom;
-            Paint paint = this.paint;
+            Paint paint = getPaint();
             // lase
-            paint.setColor(frameColor);
+            paint.setColor(laseColor);
             canvas.drawRect(0, 0, width, top, paint);// top
             canvas.drawRect(0, top, left, bottom, paint);// bottom
             canvas.drawRect(0, bottom, width, height, paint);// left
             canvas.drawRect(right, top, width, bottom, paint);// right
             // frame
-            paint.setColor(0x60ffffff);
+            paint.setColor(frameColor);
             float[] pts = new float[]{left, top, right, top, // top
                     left, bottom, right, bottom, // bottom
                     left, top, left, bottom, // left
@@ -204,8 +238,7 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
             };
             canvas.drawLines(pts, paint);
             // corners
-
-            paint.setColor(0xc0ffffff);
+            paint.setColor(cornerColor);
             int xlength = frameRect.width() / 20;
             int ylength = frameRect.height() / 20;
             int dm = frameRect.width() / 27;
@@ -244,6 +277,6 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
     public interface PreviewListener {
         void onViewCreated();
 
-        void onStartPreview();
+        void onPreviewStart();
     }
 }
