@@ -22,7 +22,7 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 /**
  * The best way to instance Viewfinder is to create a view implements it<br>
- * invoke {@link #setFrameCover(Drawable)} to change cover frame
+ * invoke {@link #setForeground(Drawable)} to change cover frame
  */
 public class ViewfinderView extends FrameLayout implements Viewfinder {
     private int frameTop, frameLeft, frameRight, frameBottom;
@@ -55,15 +55,16 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
         this.viewRect = new Point();
         this.frameRect = new Rect();
 
-        setFrameCover(new SimpleFrameDrawable());
+        setForeground(new SimpleFrameDrawable());
     }
 
-    public void setFrameCover(Drawable drawable) {
+    @Override
+    public void setForeground(Drawable drawable) {
         if (drawable != null && drawable instanceof FrameDrawable) {
-            FrameDrawable draw = (SimpleFrameDrawable) drawable;
+            FrameDrawable draw = (FrameDrawable) drawable;
             draw.setFrameRect(frameRect);
         }
-        setForeground(drawable);
+        super.setForeground(drawable);
     }
 
     /**
@@ -179,7 +180,7 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
     /**
      * the frame rect of viewfinder width four corner
      */
-    public abstract class FrameDrawable extends Drawable {
+    public static abstract class FrameDrawable extends Drawable {
         private Paint paint = new Paint();
         private Rect frameRect;
 
@@ -196,7 +197,7 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
         }
     }
 
-    public class SimpleFrameDrawable extends FrameDrawable {
+    public static class SimpleFrameDrawable extends FrameDrawable {
         private int laseColor = 0x90000000;
         private int frameColor = 0x60ffffff;
         private int cornerColor = 0xc0ffffff;

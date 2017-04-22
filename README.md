@@ -65,11 +65,15 @@ public void onScanSuccess(ScanResult result) {//扫描完成
 }
 ```
 
-可选插件：
+可选：
 
 ```Java
-private BeepManager beep;// 播放哔声
-private InactivityTimer timer;// 自动关闭
+BeepManager beep;// 播放哔声
+InactivityTimer timer;// 自动关闭
+
+// 自定义扫描的覆盖层
+Drawable draw = new ViewfinderView.FrameDrawable(){...}; //FrameDrawable支持定制边框
+viewfinderView.setForeground(draw);
 ```
 ### License
 
