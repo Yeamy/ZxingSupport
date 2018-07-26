@@ -1,6 +1,5 @@
 package com.yeamy.support.zxing;
 
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.view.TextureView;
 
@@ -18,7 +17,7 @@ public interface Viewfinder extends ResultPointCallback {
 	 * 
 	 * @return can not be null,
 	 */
-	Point getPreviewSize();
+	Size getPreviewSize();
 
 	/**
 	 * preview code has been done, to change the surface size here
@@ -34,7 +33,7 @@ public interface Viewfinder extends ResultPointCallback {
 	 * @return {@link #MIN_FRAME_WIDTH} <= width <= {@link #MAX_FRAME_WIDTH}<br>
 	 *         {@link #MIN_FRAME_HEIGHT} <= height <= {@link #MAX_FRAME_HEIGHT}
 	 */
-	Rect getFrameSize();
+	Rect getFrameRect();
 
 	/**
 	 * orientation to display camera preview, only support 0 (landspace) or 90 (portrait) so far

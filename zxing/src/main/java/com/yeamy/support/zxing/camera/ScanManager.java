@@ -1,21 +1,18 @@
 package com.yeamy.support.zxing.camera;
 
-import android.graphics.Point;
 import android.graphics.Rect;
-import android.hardware.Camera;
-import android.hardware.Camera.PreviewCallback;
-import android.hardware.Camera.Size;
 
+import com.yeamy.support.zxing.CameraShotListener;
 import com.yeamy.support.zxing.LooperThread;
 import com.yeamy.support.zxing.ScanResult;
 import com.yeamy.support.zxing.ScanResultListener;
+import com.yeamy.support.zxing.Size;
 import com.yeamy.support.zxing.Viewfinder;
 import com.yeamy.support.zxing.decode.DecodeBean;
 import com.yeamy.support.zxing.decode.DecodeRequest;
 import com.yeamy.support.zxing.decode.DecodeRequest.DecodeCallback;
 
-@SuppressWarnings("deprecation")
-public class ScanManager implements PreviewCallback, DecodeCallback {
+public class ScanManager implements CameraShotListener, DecodeCallback {
     private final DecodeBean bean;
     private final DecodeRequest decode;
     private ScanResultListener listener;
@@ -45,12 +42,12 @@ public class ScanManager implements PreviewCallback, DecodeCallback {
 
     private void startScan() {
         if (camera.isOpen()) {
-            camera.getDevice().setOneShotPreviewCallback(this);
+            camera.setCameraShotListener(this);
         }
     }
 
     @Override
-    public final void onPreviewFrame(byte[] data, Camera camera) {
+    public final void onCameraShot(byte[] data) {
         // Size s = camera.getParameters().getPreviewSize();
         // System.out.println("!!!==============> " + s.width + " " + s.height);
         PreviewManager pm = this.camera.getPreviewManager();
@@ -59,23 +56,25 @@ public class ScanManager implements PreviewCallback, DecodeCallback {
         int dataHeight = size.height;
         bean.setSource(data, dataWidth, dataHeight);
         // frame
-        int left, top, width, height;
+        int left, top, vw, vh, width, height;
         Viewfinder viewfinder = pm.getViewfinder();
-        Point view = viewfinder.getPreviewSize();
-        Rect frame = viewfinder.getFrameSize();
+        Size view = viewfinder.getPreviewSize();
+        vw = view.width;
+        vh = view.height;
+        Rect frame = viewfinder.getFrameRect();
 
         boolean portrait = viewfinder.getOrientation() % 180 != 0;
         if (portrait) {// portrait
-            left = frame.top * dataWidth / view.y;
-            top = (view.x - frame.right) * dataWidth / view.y;
-            width = frame.height() * dataWidth / view.y;
-            height = frame.width() * dataWidth / view.y;
+            left = frame.top * dataWidth / vh;
+            top = (vw - frame.right) * dataWidth / vh;
+            width = frame.height() * dataWidth / vh;
+            height = frame.width() * dataWidth / vh;
             bean.setFrameRectPortrait(left, top, width, height);
         } else {// landspace
-            left = frame.left * dataWidth / view.x;
-            top = frame.top * dataWidth / view.x;
-            width = frame.width() * dataWidth / view.x;
-            height = frame.height() * dataWidth / view.x;
+            left = frame.left * dataWidth / vw;
+            top = frame.top * dataWidth / vw;
+            width = frame.width() * dataWidth / vw;
+            height = frame.height() * dataWidth / vw;
             bean.setFrameRectLandspace(left, top, width, height);
         }
         // done

@@ -1,8 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 27
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 25
@@ -20,6 +19,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.google.zxing:core:3.3.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.google.zxing:core:3.3.0'
 }

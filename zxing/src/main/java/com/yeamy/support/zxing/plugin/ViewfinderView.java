@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -16,6 +15,7 @@ import android.widget.FrameLayout;
 
 import com.google.zxing.ResultPoint;
 import com.yeamy.support.zxing.R;
+import com.yeamy.support.zxing.Size;
 import com.yeamy.support.zxing.Viewfinder;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -26,7 +26,7 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
  */
 public class ViewfinderView extends FrameLayout implements Viewfinder {
     private int frameTop, frameLeft, frameRight, frameBottom;
-    private Point viewRect;
+    private Size viewRect;
     private Rect frameRect;
     private boolean created;
     protected TextureView textureView;
@@ -52,7 +52,7 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
         addView(view, 0, params);
         this.textureView = view;
         this.textureParams = params;
-        this.viewRect = new Point();
+        this.viewRect = new Size(0,0);
         this.frameRect = new Rect();
 
         setForeground(new SimpleFrameDrawable());
@@ -97,8 +97,8 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
     }
 
     private void reSizeRect(int left, int top, int right, int bottom) {
-        viewRect.x = right - left;
-        viewRect.y = bottom - top;
+        viewRect.width = right - left;
+        viewRect.height = bottom - top;
 
         frameRect.left = left + frameLeft;
         frameRect.right = right - frameRight;
@@ -132,12 +132,12 @@ public class ViewfinderView extends FrameLayout implements Viewfinder {
     }
 
     @Override
-    public Point getPreviewSize() {
+    public Size getPreviewSize() {
         return viewRect;
     }
 
     @Override
-    public Rect getFrameSize() {
+    public Rect getFrameRect() {
         return frameRect;
     }
 

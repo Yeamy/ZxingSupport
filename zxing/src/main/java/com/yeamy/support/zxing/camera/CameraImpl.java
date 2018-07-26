@@ -4,6 +4,7 @@ import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.view.TextureView;
 
+import com.yeamy.support.zxing.CameraShotListener;
 import com.yeamy.support.zxing.Viewfinder;
 
 import java.util.List;
@@ -24,8 +25,13 @@ public final class CameraImpl {
         return previewManager;
     }
 
-    public Camera getDevice() {
-        return device;
+    public void setCameraShotListener(final CameraShotListener l) {
+        device.setOneShotPreviewCallback(new Camera.PreviewCallback() {
+            @Override
+            public void onPreviewFrame(byte[] data, Camera camera) {
+                l.onCameraShot(data);
+            }
+        });
     }
 
     public boolean open() {
@@ -56,14 +62,14 @@ public final class CameraImpl {
         return previewManager.isPreviewing() && af && autoFocus != null;
     }
 
-    void startAutoFocus() {
+    public void startAutoFocus() {
         af = true;
         if (previewManager.isPreviewing() && autoFocus != null) {
             autoFocus.start();
         }
     }
 
-    void stopAutoFocus() {
+    public void stopAutoFocus() {
         af = false;
         if (autoFocus != null) {
             autoFocus.stop();

@@ -1,18 +1,15 @@
 package com.yeamy.support.zxing.camera;
 
-import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
-import android.hardware.Camera.Size;
 import android.view.TextureView;
 
 import com.yeamy.support.zxing.Viewfinder;
+import com.yeamy.support.zxing.Size;
 
 import java.util.List;
 
-import static android.hardware.Camera.Parameters.FLASH_MODE_OFF;
-import static android.hardware.Camera.Parameters.FLASH_MODE_TORCH;
 import static com.yeamy.support.zxing.Viewfinder.MIN_PREVIEW_PIXELS;
 
 @SuppressWarnings("deprecation")
@@ -50,27 +47,25 @@ public final class PreviewManager {
 
     private void setPreviewSize(Viewfinder vf) {
         Parameters params = device.getParameters();
-        List<Size> list = params.getSupportedPreviewSizes();
+        List<android.hardware.Camera.Size> list = params.getSupportedPreviewSizes();
         if (list == null || list.size() == 0) {
             return;
         }
         // ---------- plan
-        Point plan = vf.getPreviewSize();
-        int planWidth = plan.x;
-        int planHeight = plan.y;
+        Size plan = vf.getPreviewSize();
         //default is land
         if (vf.getOrientation() % 180 != 0) {
-            int tmp = planWidth;
-            planWidth = planHeight;
-            planHeight = tmp;
+            plan.rotate();
         }
+        int planWidth = plan.width;
+        int planHeight = plan.height;
         int planPix = planWidth * planHeight;
         // ---------- default
-        Size defaultSize = params.getPreviewSize();
+        android.hardware.Camera.Size defaultSize = params.getPreviewSize();
         // ----------- find best
         int maxPx = defaultSize.width * defaultSize.height;
-        Size maxSize = defaultSize;
-        for (Size size : list) {
+        android.hardware.Camera.Size maxSize = defaultSize;
+        for (android.hardware.Camera.Size size : list) {
             int width = size.width, height = size.height;
             if (width > planWidth || height > planHeight) {
                 continue;
@@ -81,11 +76,11 @@ public final class PreviewManager {
                 maxPx = px;
             }
         }
-        if (maxSize != defaultSize) {
+        if (!maxSize.equals(defaultSize)) {
             params.setPreviewSize(maxSize.width, maxSize.height);
             device.setParameters(params);
         }
-        previewSize = maxSize;
+        previewSize = new Size(maxSize.width, maxSize.height);
     }
 
     private void startPreview(SurfaceTexture surface, Viewfinder vf) {
