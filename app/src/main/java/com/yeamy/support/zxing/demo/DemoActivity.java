@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.yeamy.support.zxing.ScanResult;
@@ -78,6 +79,7 @@ public class DemoActivity extends Activity implements ZxingSupport.Listener {
         });//再次扫描
         System.out.println(result.getRawText());
         // TODO Auto-generated method stub
+        Toast.makeText(this, result.getRawText(), Toast.LENGTH_SHORT).show();
     }
 
 }

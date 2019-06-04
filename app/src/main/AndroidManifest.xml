@@ -11,7 +11,7 @@
         tools:ignore="MissingApplicationIcon">
         <activity
             android:name=".DemoActivity"
-            android:theme="@android:style/Theme.Holo.NoActionBar"
+            android:theme="@android:style/Theme.Material.NoActionBar"
             android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
